@@ -1,0 +1,66 @@
+---
+title: notebook
+format:
+    html:
+        code-fold: true
+---
+
+```{python load}
+import pandas as pd
+import plotly.express as px
+
+df = pd.read_csv("survey_results_public.csv")
+```
+
+```{python funcs}
+def tabulate(var, data=df):
+    return data[var].str.split(";").explode().value_counts()
+
+def get_unique_values(var, data=df):
+    return data[var].str.split(";").explode().drop_duplicates()
+
+def make_filter(var, vals):
+    """
+    Return a bool Series where any of `vals` are found
+    in the ;-separated list column `var`
+    """
+    setvals = set(vals)
+    return df[var].fillna("").str.split(";").apply(lambda x: len(setvals.intersection(x)) > 0)
+
+def find_differences(var, filter1, filter2):
+    left = 100 * tabulate(var, df[filter1]) / sum(filter1)
+    right = 100 * tabulate(var, df[filter2]) / sum(filter2)
+
+    result = left.to_frame("left").join(right.to_frame("right"), how = "outer")
+    return result.assign(diff = result['left'] - result['right']).sort_values('diff', ascending=False)
+
+```
+
+```{python}
+tabulate('Employment')
+
+get_unique_values('Employment')
+```
+
+# filter 1
+```{python filter1}
+r = make_filter('LanguageHaveWorkedWith', ['R'])
+py = make_filter('LanguageHaveWorkedWith', ['Python'])
+diffs = find_differences("Employment", r, py)
+diffs.rename(columns={"left": "first"})
+```
+
+```{python}
+px.bar(diffs[["left", "right"]], barmode="group", orientation="h")
+```
+# filter 2, default True
+
+# select column
+
+# tabulate col[filter1], splitting on ; if needed, compute pct
+# same for filter2
+
+# diff = abs(tab1 - tab2)
+
+# show topN(diff), bottomN(diff)
+# (filter out zeros from bottomN?)
