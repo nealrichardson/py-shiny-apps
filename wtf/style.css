@@ -1,0 +1,32 @@
+@import url(https://fonts.googleapis.com/css?family=Jost);
+@import url(https://fonts.googleapis.com/css?family=Lobster);
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    background-color: yellow;
+    font-size: 24px;
+    font-family: 'Jost', sans-serif;
+}
+
+h2 {
+    font-size: 48px;
+    font-family: 'Lobster', sans-serif;
+}
+
+.container {
+    height: 100%;
+    width: 100%;
+    display: table;
+    table-layout: fixed;
+}
+
+.inside {
+    vertical-align: middle;
+    display: table-cell;
+}
