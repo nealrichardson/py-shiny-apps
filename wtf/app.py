@@ -1,6 +1,6 @@
 from pathlib import Path
 import random
-
+import re
 
 from shiny import App, render, ui, reactive
 
@@ -11,7 +11,7 @@ def local_file(path):
 
 def click_button_on_load(id):
     "Use jQuery to fire event `id` on shiny:connected"
-    
+
     script = f"""
         $(document).on('shiny:connected', function(event) {{
         Shiny.setInputValue(
@@ -23,21 +23,25 @@ def click_button_on_load(id):
     return ui.tags.script(ui.HTML(script))
 
 
+def ui_from_md(md):
+    html = ui.markdown(md)
+    # Replace all {id} with ui.output_text(id, inline=True)
+    return ui.HTML(
+        re.sub(r"\{(.*?)\}", r'<span id="\1" class="shiny-text-output"></span>', html)
+    )
+
+
 app_ui = ui.page_fixed(
     ui.include_css(local_file("style.css")),
     ui.div(
         {"class": "inside"},
-        ui.h2("WTF is my open-source strategy?"),
-        ui.div(
-            ui.output_text("verb", inline=True),
-            " ",
-            ui.output_text("noun", inline=True),
-            " by ",
-            ui.output_text("action", inline=True),
-            " in order to increase ",
-            ui.output_text("maximize", inline=True),
+        ui_from_md(
+            """
+            ## WTF is my open-source strategy?
+
+            {verb} {noun} by {action} in order to increase {maximize}
+            """
         ),
-        ui.br(),
         ui.input_action_button("redo", ui.output_text("button_msg")),
     ),
     click_button_on_load("redo"),
