@@ -9,7 +9,7 @@ format:
 import pandas as pd
 import plotly.express as px
 
-df = pd.read_csv("survey_results_public.csv")
+df = pd.read_parquet("survey_results_public.parquet")
 ```
 
 ```{python funcs}
@@ -34,6 +34,18 @@ def find_differences(var, filter1, filter2):
     result = left.to_frame("left").join(right.to_frame("right"), how = "outer")
     return result.assign(diff = result['left'] - result['right']).sort_values('diff', ascending=False)
 
+def venn(filter1, filter2):
+    return pd.DataFrame({
+        "n": [
+            sum(filter1 & ~filter2),
+            sum(filter1 & filter2),
+            sum(~filter1 & filter2)
+        ],
+        "Group" : ["Left", "Both", "Right"],
+        # Hack to get plotly to do stacked bars:
+        # Need a grouping variable
+        "": ["", "", ""]
+    })
 ```
 
 ```{python}
@@ -48,6 +60,25 @@ r = make_filter('LanguageHaveWorkedWith', ['R'])
 py = make_filter('LanguageHaveWorkedWith', ['Python'])
 diffs = find_differences("Employment", r, py)
 diffs.rename(columns={"left": "first"})
+```
+
+
+```{python}
+labels = [""]
+types = ["Left", "Both", "Right"]
+counts = [3, 5, 2]
+
+#     pd.DataFrame(counts, columns=types, index=labels).reset_index().melt(id_vars="index"),
+# pd.DataFrame({"Group": types, "n": counts, "": ["", "", ""]})
+venn(py, r)
+# px.bar(
+#     pd.DataFrame({"Group": types, "n": counts, "": ["", "", ""]}),
+#     y="",
+#     x="n",
+#     color="Group",
+#     orientation="h",
+#     color_discrete_sequence=["yellow", "green", "blue"]
+# )
 ```
 
 ```{python}
